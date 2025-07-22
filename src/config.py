@@ -3,16 +3,20 @@ script that hold the configuration of our application
 """
 
 # ─── Streamlit page settings ──────────────────────────────────────────────────
-PAGE_TITLE: str = "Spring Change Detection"
-PAGE_ICON: str = "🚗"
-PAGE_LAYOUT: str = "wide" #centred
-INITIAL_SIDEBAR_STATE: str = "auto" #collapsed, expanded
+PAGE_CONFIG = {
+    'Page_title' : "Spring Change Detection",
+    'layout': "wide", # centred
+    'initial_sidebar_state': "auto", #collapsed, expanded
+    'Page_icon': "🚗",
+    }
 
 # ─── Upload restrictions ──────────────────────────────────────────────────────
-UPLOAD_ALLOWED_EXTENSIONS = ["xlsx", "xls"]
-UPLOAD_MAX_FILE_SIZE_MB: int = 200
-UPLOAD_SHEET_NAME: str = "PTA"
-UPLOAD_SKIP_ROWS = [1]
+UPLOAD_CONFIG = {
+    "allowed_extension": ['xlsx', 'xls'],
+    "max_file_size" : 200,
+    "sheet_name": "PTA",
+    "skip_rows": [1]
+    }
 
 # ─── Columns Data ────────────────────────────────────────────────────
 REQUIRED_COLUMNS: dict = {
