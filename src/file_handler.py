@@ -10,7 +10,7 @@ from typing import Any, Tuple, Optional
 import pandas as pd
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 
-from config import UPLOAD_CONFIG, REQUIRED_COLUMNS
+from src.config import UPLOAD_CONFIG, REQUIRED_COLUMNS
 
 class FileHandler:
     """Handles validation and export of Excel files."""
