@@ -4,12 +4,10 @@ script that hold the configuration of our application
 from pathlib import Path
 
 # ─── Streamlit page settings ──────────────────────────────────────────────────
-PAGE_CONFIG = {
-    'Page_title' : "Spring Change Detection",
-    'layout': "wide", # centred
-    'initial_sidebar_state': "auto", #collapsed, expanded
-    'Page_icon': "🚗",
-    }
+PAGE_TITLE: str = "Spring Change Detection"
+PAGE_ICON: str = "🚗"
+PAGE_LAYOUT: str = "wide"
+INITIAL_SIDEBAR_STATE: str = "auto"
 
 # ─── Upload restrictions ──────────────────────────────────────────────────────
 UPLOAD_CONFIG = {
