@@ -76,3 +76,42 @@ class FileHandler:
         if missing:
             return False, f"Missing columns: {', '.join(missing)}."
         return True, ""
+    
+    #__TODO: Create the excel output _______________________________________________
+    @staticmethod
+    def create_excel_bytes(
+        results: pd.DataFrame
+    ) -> bytes:
+        """
+        Generate a styled Excel report as bytes.
+
+        Args:
+            results: Analysis results with metadata.
+
+        Returns:
+            Byte content of the Excel file.
+        """
+        if results is None:
+            raise ValueError("'results' fataframe is required.")
+
+        export_df = results
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            export_df.to_excel(writer, sheet_name="PTA Analysis", index=False)
+            wb = writer.book
+            ws = writer.sheets["PTA Analysis"]
+
+            # Header styling
+            header_fill = PatternFill("solid", fgColor="4F81BD")
+            header_font = Font(bold=True, color="FFFFFF", size=12)
+            header_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            header_border = Border(*(Side("thin"),) * 4)
+
+            for idx in range(1, len(export_df.columns) + 1):
+                cell = ws.cell(row=1, column=idx)
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = header_align
+                cell.border = header_border
+
+        return output.getvalue()

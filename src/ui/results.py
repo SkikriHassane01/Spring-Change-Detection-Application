@@ -23,7 +23,6 @@ def render_results():
     # Generate Excel report bytes
     try:
         excel_bytes: bytes = FileHandler.create_excel_bytes(
-            new_df=st.session_state.input_excel_new,
             results=result_df
         )
     except Exception as e:
