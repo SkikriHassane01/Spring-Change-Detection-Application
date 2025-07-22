@@ -1,7 +1,7 @@
 
 import pandas as pd
 from typing import List
-from src.config import REQUIRED_COLUMNS,VP_COLUMNS_KEY, VU_COLUMNS_KEY
+from config import REQUIRED_COLUMNS,VP_COLUMNS_KEY, VU_COLUMNS_KEY
 
 #__TODO: Clean the dataframe_________________________________
 def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
