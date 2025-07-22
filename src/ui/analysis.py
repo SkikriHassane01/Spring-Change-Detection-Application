@@ -3,7 +3,7 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 from utils.session_state import SessionStateManager
-
+from data_processing import generate_results_df
 
 def render_overview(result_df: pd.DataFrame) -> None:
     """
@@ -11,6 +11,10 @@ def render_overview(result_df: pd.DataFrame) -> None:
     """
     st.header("📊 Analysis Overview")
 
+    if result_df.empty:
+        st.info("No data available for analysis.")
+        return
+    
     total_cars = len(result_df)
     total_new = (result_df["Change Type"] == "New").sum()
     total_spring = (result_df["Change Type"] == "Spring Changed").sum()
@@ -111,7 +115,11 @@ def render_analysis():
     Load session state and render all analysis sections.
     """
     SessionStateManager.initialize()
-    result_df = st.session_state.get("results", pd.DataFrame())
+    old_df = st.session_state.get("input_excel_old")
+    new_df = st.session_state.get("input_excel_new")
+    pta_type = st.session_state.get("pta_type")
+    
+    result_df = generate_results_df(old_df, new_df, pta_type)
 
     if result_df.empty:
         st.error("No data found. Please upload and process files first.")

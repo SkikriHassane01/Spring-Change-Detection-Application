@@ -2,6 +2,7 @@
 import pandas as pd
 from typing import List
 from config import REQUIRED_COLUMNS,VP_COLUMNS_KEY, VU_COLUMNS_KEY
+import streamlit as st 
 
 #__TODO: Clean the dataframe_________________________________
 def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
@@ -63,6 +64,7 @@ def generate_results_df(
     #__TODO: Annotate original row numbers_________________________________
     old = old_df.copy()
     new = new_df.copy()
+    
     old["__old_id"] = old.index + 3
     new["__new_id"] = new.index + 3
     
@@ -132,29 +134,21 @@ def generate_results_df(
     
     #__TODO: Assemble data _________________________________________________________
     
-    result = merged.assign(**{
-        "Old Reference": merged[ref_old],
-        "New Reference": merged[ref_new],
-        "Mass Status": merged["Mass Status"],
-        "Change Type": merged["Change Type"],
-        "Cell ID New": merged["__new_id"],
-        "Cell ID Old": merged["__old_id"],
-    })[
-        ['Old Reference', 'New Reference', 'Mass Status',
-         'Change Type', 'Cell ID New', 'Cell ID Old']
-    ].reset_index(drop=True)
+    result_cols = keys + [
+        ref_new, ref_old, mass_new, mass_old,
+        'Mass Difference', 'Mass Status', 'Reference Status', 'Change Type',
+        '__new_id', '__old_id'
+    ]
+    result_df = merged[result_cols].rename(columns={
+        ref_new: 'New Reference',
+        ref_old: 'Old Reference',
+        mass_new: 'New Mass',
+        mass_old: 'Old Mass',
+        '__new_id': 'Cell ID New',
+        '__old_id': 'Cell ID Old'
+    })
 
-    final_df = new_df.copy()
-    
-    metadata_cols = [
-        'Old Reference', 'New Reference',
-        'Mass Status', 'Change Type',
-        'Cell ID New', 'Cell ID Old'
-        ]
-    
-    for col in metadata_cols:
-        final_df[col] = result[col]
-    
-    # ensure ascending order by new-cell ID
-    final_df = final_df.sort_values('Cell ID New', ascending=True).reset_index(drop=True)
-    return final_df    
+    # sort ascending by the new-cell ID
+    result_df = result_df.sort_values('Cell ID New', ascending=True).reset_index(drop=True)
+    st.session_state['results'] = result_df
+    return result_df
