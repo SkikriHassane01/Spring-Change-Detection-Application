@@ -1,6 +1,7 @@
 """
 script that hold the configuration of our application
 """
+from pathlib import Path
 
 # ─── Streamlit page settings ──────────────────────────────────────────────────
 PAGE_CONFIG = {
@@ -34,3 +35,6 @@ VP_COLUMNS_KEY: list = [
 VU_COLUMNS_KEY: list =[
     "Moteur", "Boite", "Niveau", "Plaque de conception"
 ]
+
+# ─── Root Path ────────────────────────────────────────────────────
+ROOT_PATH = Path(__file__).resolve().parent.parent
