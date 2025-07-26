@@ -18,7 +18,6 @@ def render_upload_section():
         _render_new_file()
         
         
-
 def _render_old_file():
         st.subheader("Old PTA file:")
         old_file = st.file_uploader(
@@ -56,6 +55,10 @@ def _process_upload_file(file, type_file, session_key):
             
             #add the df to the session state
             st.session_state[session_key] = df
+            
+            # Store the original file object too for later use
+            # Use a different name than the widget key to avoid conflicts
+            st.session_state[type_file + '_file_object'] = file
                 
             #displaying the df
             with st.expander(f"Preview {type_file.title()} File data"):
@@ -63,7 +66,13 @@ def _process_upload_file(file, type_file, session_key):
         else:
             st.error(f"❌{comment}")
             st.session_state[session_key] = None
+            # Use a different name than the widget key
+            if type_file + '_file_object' in st.session_state:
+                del st.session_state[type_file + '_file_object']
             
     except Exception as e:
         st.error(f"Error processing the {type_file.title()} file\n error:{str(e)}")
         st.session_state[session_key]= None
+        # Use a different name than the widget key
+        if type_file + '_file_object' in st.session_state:
+            del st.session_state[type_file + '_file_object']

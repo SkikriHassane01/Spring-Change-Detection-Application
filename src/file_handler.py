@@ -6,10 +6,9 @@ import streamlit as st
 #__TODO: import libraries_______________________________________________
 import io
 from typing import Any, Tuple, Optional
-
 import pandas as pd
-from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
-
+from openpyxl.styles import PatternFill
+from openpyxl import load_workbook
 from config import UPLOAD_CONFIG, REQUIRED_COLUMNS
 
 class FileHandler:
@@ -83,7 +82,8 @@ class FileHandler:
         results: pd.DataFrame
     ) -> bytes:
         """
-        Generate a styled Excel report as bytes.
+        Generate a complete Excel report as bytes that preserves all sheets from the 
+        original PTA file while highlighting changes in the PTA sheet.
 
         Args:
             results: Analysis results with metadata.
@@ -91,64 +91,80 @@ class FileHandler:
         Returns:
             Byte content of the Excel file.
         """
+        # Get the original uploaded file - use the correct session state key
+        uploaded_file = st.session_state.get('new_file_object')
+        results_df = st.session_state.get('results')
         
-        new_df = st.session_state.get('input_excel_new')
-        if results is None or new_df is None:
-            raise ValueError("both 'results' and 'new df' dataframes are required.")
-
-        export_df = new_df.copy()
+        if uploaded_file is None or results_df is None:
+            raise ValueError("Both 'results' and 'original file' are required.")
         
-        metadata_cols = [
-            'Old Reference', 'New Reference',
-            'Mass Status', 'Change Type',
-            'Cell ID New', 'Cell ID Old'
-        ]
-        
-        for col in metadata_cols:
-            export_df[col] = results[col]
-
-        # ensure ascending order by new-cell ID
-        export_df = export_df.sort_values('Cell ID New', ascending=True).reset_index(drop=True)
+        # Create a BytesIO object to hold the workbook
         output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            export_df.to_excel(writer, sheet_name='PTA Analysis', index=False)
-            wb = writer.book
-            ws = writer.sheets['PTA Analysis']
-
-            # styling definitions
-            header_fill = PatternFill('solid', fgColor='4F81BD')
-            header_font = Font(bold=True, color='FFFFFF', size=12)
-            header_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
-            thin = Border(*(Side('thin'),) * 4)
-            fill_new = PatternFill('solid', fgColor='FF5733')
-            fill_spring = PatternFill('solid', fgColor='B4C6E7')
-
-            # style header row
-            for col_idx in range(1, export_df.shape[1] + 1):
-                cell = ws.cell(row=1, column=col_idx)
-                cell.fill = header_fill
-                cell.font = header_font
-                cell.alignment = header_align
-                cell.border = thin
-
-            max_row = export_df.shape[0] + 1
-            max_col = export_df.shape[1]
-            change_idx = export_df.columns.get_loc('Change Type') + 1
-
-            # apply row & cell styling
-            for r in range(2, max_row + 1):
-                typ = export_df.at[r - 2, 'Change Type']
-                if typ == 'New':
-                    for c in range(1, max_col + 1): ws.cell(r, c).fill = fill_new
-                elif typ == 'Spring Changed':
-                    for c in range(1, max_col + 1):
-                        ws.cell(r, c).fill = fill_spring
-            # auto-size columns & rows
-            for col in ws.columns:
-                length = max(len(str(cell.value)) for cell in col if cell.value)
-                ws.column_dimensions[col[0].column_letter].width = min(length + 3, 30)
-            for r in range(2, max_row + 1):
-                ws.row_dimensions[r].height = 18
-
+        
+        # First, save the uploaded file to a temporary BytesIO object
+        temp_io = io.BytesIO()
+        temp_io.write(uploaded_file.getvalue())
+        temp_io.seek(0)
+        
+        # Load the workbook from the BytesIO object
+        wb = load_workbook(temp_io)
+        
+        # Get the PTA sheet
+        if UPLOAD_CONFIG["sheet_name"] in wb.sheetnames:
+            ws = wb[UPLOAD_CONFIG["sheet_name"]]
+            
+            # Find data start row (after skipping header rows)
+            start_row = UPLOAD_CONFIG["skip_rows"][0] + 2  # Skip header + extra row
+            
+            # Try to find the reference column based on header row content
+            reference_col = None
+            headers_found = []
+            
+            # Scan header row to find reference column
+            for col_idx in range(1, ws.max_column + 1):
+                cell_value = ws.cell(row=start_row-1, column=col_idx).value
+                if cell_value:
+                    headers_found.append(str(cell_value).strip())
+                    if REQUIRED_COLUMNS["reference"] in str(cell_value):
+                        reference_col = col_idx
+                        break
+            
+            # If not found, try with more flexible matching
+            if reference_col is None:
+                for col_idx in range(1, ws.max_column + 1):
+                    cell_value = ws.cell(row=start_row-1, column=col_idx).value
+                    if cell_value and "référence" in str(cell_value).lower():
+                        reference_col = col_idx
+                        break
+            
+            # If still not found, proceed without reference column validation
+            # Just use Cell IDs from results dataframe for matching rows
+            
+            # Match each row with the results and apply highlighting
+            row_idx = start_row
+            while ws.cell(row=row_idx, column=1).value is not None:
+                # Get cell ID (Excel row number)
+                cell_id = row_idx
+                
+                # Find matching record in results dataframe by cell ID
+                match = results_df[results_df['Cell ID New'] == cell_id]
+                
+                if not match.empty:
+                    change_type = match['Change Type'].values[0]
+                    if change_type == 'New':
+                        # Highlight new rows
+                        fill = PatternFill('solid', fgColor='FF5733')
+                        for col in range(1, ws.max_column + 1):
+                            ws.cell(row=row_idx, column=col).fill = fill
+                    elif change_type == 'Spring Changed':
+                        # Highlight spring changed rows
+                        fill = PatternFill('solid', fgColor='B4C6E7')
+                        for col in range(1, ws.max_column + 1):
+                            ws.cell(row=row_idx, column=col).fill = fill
+                
+                row_idx += 1
+        
+        # Save the workbook to the BytesIO object
+        wb.save(output)
         output.seek(0)
         return output.getvalue()
