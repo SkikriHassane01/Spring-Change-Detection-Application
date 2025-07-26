@@ -18,6 +18,13 @@ The application performs statistical analysis and visualizes key metrics.
 View detected spring changes, highlighted new cars, and download results.
 ![Results Dashboard](images/3_results.png)
 
+
+## Video Guid
+
+Watch the introductory video for a quick overview of the application:
+<video src="video/intro.mp4" controls width="600"></video>
+
+
 ## Goal
 
 the goal of this project is to compare two PTA excel files (old, new) to detect vehicle spring changes

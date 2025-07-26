@@ -76,40 +76,6 @@ def render_change_type_distribution(result_df: pd.DataFrame) -> None:
     )
     st.plotly_chart(fig, use_container_width=True)
 
-
-def render_summary_statistics(result_df: pd.DataFrame) -> None:
-    """
-    Show summary statistics for mass differences, excluding new entries.
-    """
-    st.subheader("📈 Statistical Summary of Mass Differences")
-    if result_df.empty:
-        st.info("No data available for statistics.")
-        return
-
-    matched = result_df[result_df["Change Type"] != "New"]
-    stats = {
-        "Metric": [
-            "Count", "Mean Change", "Std Deviation",
-            "Min Change", "Max Change",
-            "25th Percentile", "Median", "75th Percentile"
-        ],
-        "Value (kg)": [
-            len(matched),
-            matched["Mass Difference"].mean(),
-            matched["Mass Difference"].std(),
-            matched["Mass Difference"].min(),
-            matched["Mass Difference"].max(),
-            matched["Mass Difference"].quantile(0.25),
-            matched["Mass Difference"].median(),
-            matched["Mass Difference"].quantile(0.75),
-        ]
-    }
-    stat_df = pd.DataFrame(stats)
-    stat_df["Value (kg)"] = stat_df["Value (kg)"].map(lambda x: f"{x:.2f}")
-
-    st.dataframe(stat_df, use_container_width=True, hide_index=True)
-
-
 def render_analysis():
     """
     Load session state and render all analysis sections.
@@ -128,4 +94,3 @@ def render_analysis():
     render_overview(result_df)
     render_mass_distribution(result_df)
     render_change_type_distribution(result_df)
-    render_summary_statistics(result_df)
