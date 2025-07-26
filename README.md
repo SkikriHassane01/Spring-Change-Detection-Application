@@ -30,3 +30,20 @@ we use the following libraries:
 - streamlit : making easy to create and deploy a custome web application specially for machine learning and data science application
 - streamlit-lottie: for adding some animations.
 - plotly: for data visualization
+
+## Application Workflow
+
+### 1. Upload PTA Files
+
+Upload the old and new PTA Excel files for comparison.
+![Upload PTA Files](images/1_uploads.png)
+
+### 2. Data Analysis & Visualization
+
+The application performs statistical analysis and visualizes key metrics.
+![Data Analysis & Visualization](images/2_analysis.png)
+
+### 3. Results Dashboard
+
+View detected spring changes, highlighted new cars, and download results.
+![Results Dashboard](images/3_results.png)
